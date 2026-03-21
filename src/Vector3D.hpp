@@ -8,7 +8,7 @@ struct Vector3D {
     // Vektor 3 dimensi
     double x, y, z;
     
-    // Konstruktor
+    /* ===== KONSTRUKTOR ===== */
     Vector3D() : x(0), y(0), z(0) {}
     Vector3D(double x, double y, double z) : x(x), y(y), z(z) {}
     

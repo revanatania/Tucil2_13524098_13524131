@@ -98,16 +98,16 @@ struct Vector3D {
 
     /* ===== FUNGSI LAINNYA ===== */
     // Cari nilai minimum per komponen dari dua vektor
-    static Vector3D min(const Vector3D& a, Vector3D& b) {
+    static Vector3D min(const Vector3D& a, const Vector3D& b) {
         return {
-            fmin(a.x, b.x),
-            fmin(a.y, b.y),
-            fmin(a.z, b.z)
+            std::fmin(a.x, b.x),
+            std::fmin(a.y, b.y),
+            std::fmin(a.z, b.z)
         };
     }
 
     // Cari nilai maksimum per komponen dari dua vektor
-    static Vector3D max(const Vector3D& a, Vector3D& b) {
+    static Vector3D max(const Vector3D& a, const Vector3D& b) {
         return {
             fmax(a.x, b.x),
             fmax(a.y, b.y),

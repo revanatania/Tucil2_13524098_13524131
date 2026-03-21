@@ -38,17 +38,18 @@ struct Vector3D {
         return *this;
     }
 
-    Vector3D operator-=(const Vector3D& o) {
+    Vector3D& operator-=(const Vector3D& o) {
         x -= o.x;
         y -= o.y;
         z -= o.z;
         return *this;
     }
 
-    Vector3D operator*=(double s) {
+    Vector3D& operator*=(double s) {
         x *= s;
         y *= s;
         z *= s;
+        return *this;
     }
 
     // Operator perbandingan
@@ -106,7 +107,7 @@ struct Vector3D {
     }
 
     // Cari nilai maksimum per komponen dari dua vektor
-    static Vector3D min(const Vector3D& a, Vector3D& b) {
+    static Vector3D max(const Vector3D& a, Vector3D& b) {
         return {
             fmax(a.x, b.x),
             fmax(a.y, b.y),

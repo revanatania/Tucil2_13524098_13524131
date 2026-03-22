@@ -3,6 +3,11 @@
 #include <array>
 #include <memory>
 
+enum class NodeState {
+    Empty,
+    Internal,
+    VoxelLeaf,
+};
 struct OctreeNode {
     AABB box;
     int depth;
@@ -15,8 +20,3 @@ struct OctreeNode {
 
 };
 
-enum class NodeState {
-    Empty,
-    Internal,
-    VoxelLeaf,
-};

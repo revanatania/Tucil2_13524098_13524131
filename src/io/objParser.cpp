@@ -55,12 +55,6 @@ ParseResult ObjParser::parse(const std::string& filePath) {
                 mesh.vertices[k - 1]
             );
         }
-        else {
-            result.errorMessage =
-                "Invalid line prefix at line " + std::to_string(lineNumber) +
-                ". Only 'v' and 'f' are allowed.";
-            return result;
-        }
     }
 
     if (mesh.vertices.empty()) {

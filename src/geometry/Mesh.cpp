@@ -29,6 +29,16 @@ AABB Mesh::computeBoundingCube() const {
     return AABB::fromBounds(computeMinPoint(), computeMaxPoint());
 }
 
+void Mesh::append(const Mesh& other) {
+    for (const Vector3D& v : other.vertices) {
+        vertices.push_back(v);
+    }
+
+    for (const Triangle& t : other.triangles) {
+        triangles.push_back(t);
+    }
+}
+
 Mesh Mesh::createCubeMesh(const AABB& box) {
     Mesh mesh;
 
@@ -67,13 +77,4 @@ Mesh Mesh::createCubeMesh(const AABB& box) {
     };
 
     return mesh;
-}
-
-void Mesh::append(const Mesh& other){
-    for (const Vector3D& v : other.vertices) {
-        vertices.push_back(v);
-    }
-    for (const Triangle& t : other.triangles) {
-        triangles.push_back(t);
-    }
 }

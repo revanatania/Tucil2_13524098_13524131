@@ -29,8 +29,9 @@ VoxelizationResult Voxelizer::voxelize(
 
     OutputStats stats;
     stats.voxelCount = octreeStats.voxelCount;
-    stats.faceCount = (int)outputMesh.triangles.size();
-    stats.vertexCount = stats.faceCount * 3;
+    // Dihitung per voxel: 1 voxel = 8 vertex + 12 face
+    stats.vertexCount = stats.voxelCount * 8;
+    stats.faceCount = stats.voxelCount * 12;
     stats.octreeDepth = octreeStats.maxDepth;
     stats.nodesFormedPerDepth = octreeStats.nodesFormedPerDepth;
     stats.nodesSkippedPerDepth = octreeStats.nodesSkippedPerDepth;

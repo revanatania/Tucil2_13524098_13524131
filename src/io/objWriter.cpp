@@ -3,8 +3,10 @@
 #include <iostream>
 #include <iomanip>
 
-bool Output::writeMesh(const std::string& filePath, const Mesh& mesh, std::string& errorMessage) {
-    std::ofstream out(filePath);
+using namespace std;
+
+bool Output::writeMesh(const string& filePath, const Mesh& mesh, string& errorMessage) {
+    ofstream out(filePath);
     if (!out.is_open()) {
         errorMessage = "Failed to open output file: " + filePath;
         return false;
@@ -32,23 +34,23 @@ bool Output::writeMesh(const std::string& filePath, const Mesh& mesh, std::strin
 }
 
 void Output::printStats(const OutputStats& stats) {
-    std::cout << "Banyaknya voxel yang terbentuk: " << stats.voxelCount << "\n";
-    std::cout << "Banyaknya vertex yang terbentuk: " << stats.vertexCount << "\n";
-    std::cout << "Banyaknya faces yang terbentuk: " << stats.faceCount << "\n";
+    cout << "Banyaknya voxel yang terbentuk: " << stats.voxelCount << "\n";
+    cout << "Banyaknya vertex yang terbentuk: " << stats.vertexCount << "\n";
+    cout << "Banyaknya faces yang terbentuk: " << stats.faceCount << "\n";
 
-    std::cout << "\nStatistik node octree yang terbentuk:\n";
+    cout << "\nStatistik node octree yang terbentuk:\n";
     for (int depth = 1; depth < (int)stats.nodesFormedPerDepth.size(); ++depth) {
-        std::cout << depth << " : " << stats.nodesFormedPerDepth[depth] << "\n";
+        cout << depth << " : " << stats.nodesFormedPerDepth[depth] << "\n";
     }
 
-    std::cout << "\nStatistik node yang tidak perlu ditelusuri:\n";
+    cout << "\nStatistik node yang tidak perlu ditelusuri:\n";
     for (int depth = 1; depth < (int)stats.nodesSkippedPerDepth.size(); ++depth) {
-        std::cout << depth << " : " << stats.nodesSkippedPerDepth[depth] << "\n";
+        cout << depth << " : " << stats.nodesSkippedPerDepth[depth] << "\n";
     }
 
-    std::cout << "\nKedalaman octree: " << stats.octreeDepth << "\n";
-    std::cout << "Lama waktu program berjalan: "
-              << std::fixed << std::setprecision(3)
+    cout << "\nKedalaman octree: " << stats.octreeDepth << "\n";
+    cout << "Lama waktu program berjalan: "
+              << fixed << setprecision(3)
               << stats.runtimeMs << " ms\n";
-    std::cout << "Path dimana file .obj disimpan: " << stats.outputPath << "\n";
+    cout << "Path dimana file .obj disimpan: " << stats.outputPath << "\n";
 }

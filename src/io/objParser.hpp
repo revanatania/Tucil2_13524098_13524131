@@ -8,6 +8,5 @@ public:
 
 private:
     static bool parseVertexLine(const std::string& line, Vector3D& outVertex);
-    static int parseVertexIndex(const string& token);
     static bool parseFaceLine(const string& line, vector<int>& outIndices);
 };

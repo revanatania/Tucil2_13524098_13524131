@@ -82,11 +82,10 @@ bool ObjParser::parseVertexLine(const string& line, Vector3D& outVertex) {
     string prefix;
     double x, y, z;
 
-    if (!(iss >> prefix >> x >> y >> z)) return false;
-
-    string extra;
-    if (iss >> extra) return false;
-
+    if (!(iss >> prefix >> x >> y >> z)) {
+        return false;
+    }
+    
     outVertex = Vector3D(x, y, z);
     return true;
 }

@@ -2,26 +2,28 @@
 #include <fstream>
 #include <sstream>
 
-ParseResult ObjParser::parse(const std::string& filePath) {
+using namespace std;
+
+ParseResult ObjParser::parse(const string& filePath) {
     ParseResult result;
 
-    std::ifstream file(filePath);
+    ifstream file(filePath);
     if (!file.is_open()) {
         result.errorMessage = "Failed to open file: " + filePath;
         return result;
     }
 
     Mesh mesh;
-    std::string line;
+    string line;
     int lineNumber = 0;
 
-    while (std::getline(file, line)) {
+    while (getline(file, line)) {
         ++lineNumber;
 
         if (line.empty()) continue;
 
-        std::istringstream iss(line);
-        std::string prefix;
+        istringstream iss(line);
+        string prefix;
         iss >> prefix;
 
         if (prefix.empty()) continue;
@@ -29,31 +31,34 @@ ParseResult ObjParser::parse(const std::string& filePath) {
         if (prefix == "v") {
             Vector3D vertex;
             if (!parseVertexLine(line, vertex)) {
-                result.errorMessage = "Invalid vertex at line " + std::to_string(lineNumber);
+                result.errorMessage = "Invalid vertex at line " + to_string(lineNumber);
                 return result;
             }
             mesh.vertices.push_back(vertex);
         }
         else if (prefix == "f") {
-            int i, j, k;
-            if (!parseFaceLine(line, i, j, k)) {
-                result.errorMessage = "Invalid face at line " + std::to_string(lineNumber);
+            vector<int> indices;
+            if (!parseFaceLine(line, indices)) {
+                result.errorMessage = "Invalid face at line " + to_string(lineNumber);
                 return result;
             }
 
-            if (i < 1 || j < 1 || k < 1 ||
-                i > (int)mesh.vertices.size() ||
-                j > (int)mesh.vertices.size() ||
-                k > (int)mesh.vertices.size()) {
-                result.errorMessage = "Face index is out of range at line " + std::to_string(lineNumber);
-                return result;
+            // Validasi semua index
+            for (int idx : indices) {
+                if (idx < 1 || idx > (int)mesh.vertices.size()) {
+                    result.errorMessage = "Face index out of range at line " + to_string(lineNumber);
+                    return result;
+                }
             }
 
-            mesh.triangles.emplace_back(
-                mesh.vertices[i - 1],
-                mesh.vertices[j - 1],
-                mesh.vertices[k - 1]
-            );
+            // Fan triangulation: buat segitiga 1 triangle, buat quad 2 triangle, dst.
+            for (int i = 1; i < (int)indices.size() - 1; i++) {
+                mesh.triangles.emplace_back(
+                    mesh.vertices[indices[0] - 1],
+                    mesh.vertices[indices[i] - 1],
+                    mesh.vertices[indices[i + 1] - 1]
+                );
+            }
         }
     }
 
@@ -68,32 +73,45 @@ ParseResult ObjParser::parse(const std::string& filePath) {
     }
 
     result.success = true;
-    result.mesh = std::move(mesh);
+    result.mesh = move(mesh);
     return result;
 }
 
-bool ObjParser::parseVertexLine(const std::string& line, Vector3D& outVertex) {
-    std::istringstream iss(line);
-    std::string prefix;
+bool ObjParser::parseVertexLine(const string& line, Vector3D& outVertex) {
+    istringstream iss(line);
+    string prefix;
     double x, y, z;
 
     if (!(iss >> prefix >> x >> y >> z)) return false;
 
-    std::string extra;
+    string extra;
     if (iss >> extra) return false;
 
     outVertex = Vector3D(x, y, z);
     return true;
 }
 
-bool ObjParser::parseFaceLine(const std::string& line, int& i, int& j, int& k) {
-    std::istringstream iss(line);
-    std::string prefix;
+static int parseVertexIndex(const string& token) {
+    // Ambil angka hanya sebelum '/' pertama
+    string indexStr = token.substr(0, token.find('/'));
+    return stoi(indexStr);
+}
 
-    if (!(iss >> prefix >> i >> j >> k)) return false;
+bool ObjParser::parseFaceLine(const string& line, vector<int>& outIndices) {
+    istringstream iss(line);
+    string prefix;
+    iss >> prefix; // buang "f"
 
-    std::string extra;
-    if (iss >> extra) return false;
+    string token;
+    while (iss >> token) {
+        try {
+            int index = parseVertexIndex(token);
+            outIndices.push_back(index);
+        } catch (...) {
+            return false;
+        }
+    }
 
-    return true;
+    // Minimal harus ada 3 index (segitiga)
+    return outIndices.size() >= 3;
 }

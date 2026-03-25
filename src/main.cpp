@@ -2,10 +2,12 @@
 #include <string>
 #include <filesystem>
 #include <stdexcept>
+#include <vector>
 
 #include "io/objParser.hpp"
 #include "io/objWriter.hpp"
 #include "voxel/Voxelizer.hpp"
+#include "viewer/Viewer.hpp"
 
 namespace fs = std::filesystem;
 
@@ -87,6 +89,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    bool showViewer = false;
+    for (int i = 1; i < argc; ++i) {
+        if (std::string(argv[i]) == "--show") {
+            showViewer = true;
+        }
+    }
 
     result.stats.outputPath = outputPath;
     std::string writeError;
@@ -95,6 +103,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
+    if (showViewer) {
+        std::cout << "Opening Viewer... (Close window to see stats)\n";
+        Viewer viewer(result.voxels); 
+        viewer.run();
+    }
+
     std::cout << "\n=== Hasil ===\n";
     Output::printStats(result.stats);
 

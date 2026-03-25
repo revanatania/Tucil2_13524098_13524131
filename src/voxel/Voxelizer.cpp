@@ -40,6 +40,7 @@ VoxelizationResult Voxelizer::voxelize(
     VoxelizationResult result;
     result.outputMesh = std::move(outputMesh);
     result.stats = std::move(stats);
+    result.voxels = std::move(voxelBoxes);
 
     return result;
 }

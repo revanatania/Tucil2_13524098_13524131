@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     // default path output :  stem + "-voxelized.obj"
     std::string outputPath;
     fs::path p(inputPath);
-    if (argc >= 4) {
+    if (argc >= 4 && std::string(argv[3]).substr(0, 2) != "--") {
         outputPath = (p.parent_path() / argv[3]).string();
     } else {
         outputPath = (p.parent_path() / (p.stem().string() + "-voxelized.obj")).string();

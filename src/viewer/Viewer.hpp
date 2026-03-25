@@ -132,7 +132,7 @@ class Viewer {
     void updateCameraPosition();
 
     // Hitung view matriks dari posisi kamera saat ini
-    Matrix4x4 computerViewMatrix() const;
+    Matrix4x4 computeViewMatrix() const;
 
     // Proyeksikan satu titik 3D ke koordinat layar 2D
     bool projectPoint(const Vector3D& point3D, const Matrix4x4& viewMatrix, Vector2f& outScreenPoint) const;

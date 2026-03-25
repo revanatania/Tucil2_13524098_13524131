@@ -129,7 +129,7 @@ void Viewer::updateCameraPosition() {
 }
 
 // View matriks dari posisi kamera saat ini
-Matrix4x4 Viewer::computerViewMatrix() const {
+Matrix4x4 Viewer::computeViewMatrix() const {
     // Hitung tiga sumbu kamera
     // forward = arah pandang kamera (dari eye ke target)
     Vector3D forward = (camera.target - camera.eye).normalize();
@@ -156,7 +156,7 @@ Matrix4x4 Viewer::computerViewMatrix() const {
     viewMatrix.data[2][0] = -forward.x;
     viewMatrix.data[2][1] = -forward.y;
     viewMatrix.data[2][2] = -forward.z;
-    viewMatrix.data[2][3] =  (forward.x * camera.eye.x + forward.y * camera.eye.y + forward.z * camera.eye.z);
+    viewMatrix.data[2][3] = -(forward.x * camera.eye.x + forward.y * camera.eye.y + forward.z * camera.eye.z);
 
     viewMatrix.data[3][3] = 1.0;
 
@@ -279,19 +279,19 @@ void Viewer::handleEvents(RenderWindow& window, const Event& event) {
             mousePreviousX = currentX;
             mousePreviousY = currentY;
         }
+    }
 
-        // Scroll mouse = zoom in dan out
-        if (event.type == Event::MouseWheelScrolled) {
-            double zoomSensitivity = 0.1;
-            camera.orbitRadius -= (double)event.mouseWheelScroll.delta * (camera.orbitRadius * 0.1);
-        }
+    // Scroll mouse = zoom in dan out
+    if (event.type == Event::MouseWheelScrolled) {
+        double zoomSensitivity = 0.1;
+        camera.orbitRadius -= (double)event.mouseWheelScroll.delta * zoomSensitivity * camera.orbitRadius;
 
         // Batasan radius zoom
         if (camera.orbitRadius < 0.1) {
             camera.orbitRadius = 0.1;
         }
-        if (camera.orbitRadius > 1000.0) {
-            camera.orbitRadius = 1000.0;
+        if (camera.orbitRadius > 9999999.0) {
+            camera.orbitRadius = 9999999.0;
         }
 
         updateCameraPosition();
@@ -320,7 +320,7 @@ void Viewer::run() {
         }
 
         // Hitung view matriks sekali per frame
-        Matrix4x4 viewMatrix = computerViewMatrix();
+        Matrix4x4 viewMatrix = computeViewMatrix();
 
         // Clear layar pake warna gelap
         window.clear(Color(25, 25, 25));

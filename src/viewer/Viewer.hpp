@@ -86,16 +86,20 @@ struct Camera {
     }
 };
 
-/* ===== STRUCT EDGE ===== */
-// Satu garis yang ngehubungin dua titik, buat ngegambar kerangka voxel
-struct Edge {
-    // Dua titik ujung garis
-    Vector3D pointA;
-    Vector3D pointB;
+/* ===== STRUCT FACE3D ===== */
+// Satu sisi permukaan dari sebuah voxel
+struct Face3D {
+    // 4 titik sudut face di dunia 3D
+    Vector3D corners[4];
 
-    Edge(Vector3D a, Vector3D b) {
-        this->pointA = a;
-        this->pointB = b;
+    // Normal face buat lighting
+    Vector3D normal;
+
+    // Jarak rata-rata face ke kamera
+    double depthValue;
+
+    Face3D() {
+        depthValue = 0.0;
     }
 };
 
@@ -114,8 +118,8 @@ class Viewer {
     void run();
 
     private:
-    // Daftar semua edge yang bakal digambar
-    vector<Edge> edges;
+    // Daftar semua face dari semua voxel
+    vector<Face3D> allFaces;
 
     // State kamera saat ini
     Camera camera;
@@ -125,8 +129,8 @@ class Viewer {
     float mousePreviousX;
     float mousePreviousY;
 
-    // Bangun daftar edge dari satu voxel (satu kubus ada 12 edge)
-    void buildEdgesFromVoxel(const AABB& box);
+    // Bangun 6 face dari satu voxel, masukin ke allFaces
+    void buildFacesFromVoxel(const AABB& box);
 
     // Hitung posisi kamera dari spherical coordinates
     void updateCameraPosition();
@@ -135,10 +139,10 @@ class Viewer {
     Matrix4x4 computeViewMatrix() const;
 
     // Proyeksikan satu titik 3D ke koordinat layar 2D
-    bool projectPoint(const Vector3D& point3D, const Matrix4x4& viewMatrix, Vector2f& outScreenPoint) const;
+    bool projectPoint(const Vector3D& point3D, const Matrix4x4& viewMatrix, Vector2f& outScreenPoint, double& outCameraZ) const;
 
-    // Gambar semua edge ke render target
-    void drawEdges(RenderWindow& window, const Matrix4x4& viewMatrix);
+    // Gambar semua face ke render target
+    void drawFaces(RenderWindow& window, const Matrix4x4& viewMatrix);
 
     // Handle semua event 
     void handleEvents(RenderWindow& window, const Event& event);

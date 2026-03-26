@@ -46,59 +46,96 @@ Viewer::Viewer(const vector<AABB>& voxels) {
     double dz = globalMax.z - globalMin.z;
     double objectSize = sqrt(dx * dx + dy * dy + dz * dz);
 
-    // Set kamera supaya ngeliat ke tengah objek dari jarak yang pas
+    // Set kamera supaya ngeliat ke tengah objek dari luar
     camera.target = centerPoint;
-    camera.orbitRadius = objectSize * 1.2;
-    camera.focalLength = 1.5;
+    camera.orbitRadius = objectSize * 1.5;
+    camera.focalLength = 1.2;
     camera.theta = 0.5;
     camera.phi = 1.0;
 
     // Hitung posisi awal kamera
     updateCameraPosition();
 
-    // Bangun semua edge dari semua voxel
+    // Bangun semua face dari semua voxel
     for (const AABB& box : voxels) {
-        buildEdgesFromVoxel(box);
+        buildFacesFromVoxel(box);
     }
 }
 
-// Bikin edges dari daftar voxel
-// Huruf pertama: L/R, huruf kedua: B/T, huruf ketiga: Near/Far
-void Viewer::buildEdgesFromVoxel(const AABB& box) {
-    double minX = box.minCorner.x;
-    double minY = box.minCorner.y;
-    double minZ = box.minCorner.z;
-    double maxX = box.maxCorner.x;
-    double maxY = box.maxCorner.y;
-    double maxZ = box.maxCorner.z;
+// Bangun 6 face dari satu voxel (kubus)
+// Tiap face punya 4 titik sudut dan 1 normal
+// Urutan 4 titik tiap face: counter-clockwise dilihat dari luar
+void Viewer::buildFacesFromVoxel(const AABB& box) {
+    double x0 = box.minCorner.x;
+    double y0 = box.minCorner.y;
+    double z0 = box.minCorner.z;
+    double x1 = box.maxCorner.x;
+    double y1 = box.maxCorner.y;
+    double z1 = box.maxCorner.z;
 
     // 8 titik sudut kubus
-    Vector3D LBN(minX, minY, minZ);
-    Vector3D RBN(maxX, minY, minZ);
-    Vector3D LTN(minX, maxY, minZ);
-    Vector3D RTN(maxX, maxY, minZ);
-    Vector3D LBF(minX, minY, maxZ);
-    Vector3D RBF(maxX, minY, maxZ);
-    Vector3D LTF(minX, maxY, maxZ);
-    Vector3D RTF(maxX, maxY, maxZ);
+    Vector3D v000(x0, y0, z0);
+    Vector3D v100(x1, y0, z0);
+    Vector3D v010(x0, y1, z0);
+    Vector3D v110(x1, y1, z0);
+    Vector3D v001(x0, y0, z1);
+    Vector3D v101(x1, y0, z1);
+    Vector3D v011(x0, y1, z1);
+    Vector3D v111(x1, y1, z1);
 
-    // 4 edge di sisi Near (depan)
-    edges.push_back(Edge(LBN, RBN));
-    edges.push_back(Edge(RBN, RTN));
-    edges.push_back(Edge(RTN, LTN));
-    edges.push_back(Edge(LTN, LBN));
+    // Bottom face: normal ke arah bawah (0, -1, 0)
+    Face3D bottom;
+    bottom.corners[0] = v000;
+    bottom.corners[1] = v001;
+    bottom.corners[2] = v101;
+    bottom.corners[3] = v100;
+    bottom.normal = Vector3D(0.0, -1.0, 0.0);
+    allFaces.push_back(bottom);
 
-    // 4 edge di sisi Far (belakang)
-    edges.push_back(Edge(LBF, RBF));
-    edges.push_back(Edge(RBF, RTF));
-    edges.push_back(Edge(RTF, LTF));
-    edges.push_back(Edge(LTF, LBF));
+    // Top face: normal ke arah atas (0, 1, 0)
+    Face3D top;
+    top.corners[0] = v010;
+    top.corners[1] = v110;
+    top.corners[2] = v111;
+    top.corners[3] = v011;
+    top.normal = Vector3D(0.0, 1.0, 0.0);
+    allFaces.push_back(top);
 
-    // 4 edge penghubung Near ke Far (samping)
-    edges.push_back(Edge(LBN, LBF));
-    edges.push_back(Edge(RBN, RBF));
-    edges.push_back(Edge(LTN, LTF));
-    edges.push_back(Edge(RTN, RTF));
+    // Front face: normal ke arah depan (0, 0, -1)
+    Face3D front;
+    front.corners[0] = v000;
+    front.corners[1] = v100;
+    front.corners[2] = v110;
+    front.corners[3] = v010;
+    front.normal = Vector3D(0.0, 0.0, -1.0);
+    allFaces.push_back(front);
+
+    // Back face: normal ke arah belakang (0, 0, 1)
+    Face3D back;
+    back.corners[0] = v001;
+    back.corners[1] = v011;
+    back.corners[2] = v111;
+    back.corners[3] = v101;
+    back.normal = Vector3D(0.0, 0.0, 1.0);
+    allFaces.push_back(back);
+
+    // Left face: normal ke arah kiri (-1, 0, 0)
+    Face3D left;
+    left.corners[0] = v000;
+    left.corners[1] = v010;
+    left.corners[2] = v011;
+    left.corners[3] = v001;
+    left.normal = Vector3D(-1.0, 0.0, 0.0);
+    allFaces.push_back(left);
+ 
+    // Right face: normal ke arah kanan (1, 0, 0)
+    Face3D right;
+    right.corners[0] = v100;
+    right.corners[1] = v101;
+    right.corners[2] = v111;
+    right.corners[3] = v110;
+    right.normal = Vector3D(1.0, 0.0, 0.0);
+    allFaces.push_back(right);
 }
 
 // Posisi kamera (sudut pandang)
@@ -148,9 +185,9 @@ Matrix4x4 Viewer::computeViewMatrix() const {
     viewMatrix.data[0][2] = right.z;
     viewMatrix.data[0][3] = -(right.x * camera.eye.x + right.y * camera.eye.y + right.z * camera.eye.z);
     
-    viewMatrix.data[1][0] =  correctedUp.x;
-    viewMatrix.data[1][1] =  correctedUp.y;
-    viewMatrix.data[1][2] =  correctedUp.z;
+    viewMatrix.data[1][0] = correctedUp.x;
+    viewMatrix.data[1][1] = correctedUp.y;
+    viewMatrix.data[1][2] = correctedUp.z;
     viewMatrix.data[1][3] = -(correctedUp.x * camera.eye.x + correctedUp.y * camera.eye.y + correctedUp.z * camera.eye.z);
     
     viewMatrix.data[2][0] = -forward.x;
@@ -164,7 +201,7 @@ Matrix4x4 Viewer::computeViewMatrix() const {
 }
 
 // Proyeksi satu titik 3D ke koordinat layar 2D
-bool Viewer::projectPoint(const Vector3D& point3D, const Matrix4x4& viewMatrix, Vector2f& outScreenPoint) const {
+bool Viewer::projectPoint(const Vector3D& point3D, const Matrix4x4& viewMatrix, Vector2f& outScreenPoint, double& outCameraZ) const {
     // Tahap 1: transformasi ke camera space
     double inputX = point3D.x;
     double inputY = point3D.y;
@@ -186,6 +223,8 @@ bool Viewer::projectPoint(const Vector3D& point3D, const Matrix4x4& viewMatrix, 
                      viewMatrix.data[2][2] * inputZ +
                      viewMatrix.data[2][3] * inputW;
 
+    outCameraZ = cameraZ;
+
     // Kalau Z <= 0, titik ada di belakang kamera jadi gausah kegambar
     if (cameraZ <= 0.001) {
         return false;
@@ -205,29 +244,115 @@ bool Viewer::projectPoint(const Vector3D& point3D, const Matrix4x4& viewMatrix, 
     return true;
 }
 
-// Gambar semua edge ke window
-void Viewer::drawEdges(RenderWindow& window, const Matrix4x4& viewMatrix) {
-    // Warna garis putih agak transparan
-    Color edgeColor(200, 220, 255, 180);
+// Gambar semua face sebagai solid polygon
+// Digunakan backface culling, depth sorting, dan lighting
+void Viewer::drawFaces(RenderWindow& window, const Matrix4x4& viewMatrix) {
+    // Arah cahaya ngikutin posisi kamera
+    Vector3D toCamera = (camera.eye - camera.target).normalize();
+    Vector3D lightUp = Vector3D(0.0, 1.0, 0.0);
+    Vector3D lightDirection = (toCamera + lightUp * 0.5).normalize();
 
-    for (const Edge& edge : edges) {
-        Vector2f screenPointA;
-        Vector2f screenPointB;
+    // Arah dari objek ke kamera
+    Vector3D cameraDirection = (camera.eye - camera.target).normalize();
 
-        // Proyeksikan kedua ujung edge
-        bool pointAVisible = projectPoint(edge.pointA, viewMatrix, screenPointA);
-        bool pointBVisible = projectPoint(edge.pointB, viewMatrix, screenPointB);
+    /* Tahap 1: kumpulin face yang lolos backface culling, proyeksiin, dan hitung depth */
+    // Struct sementara buat nyimpen face yang udah siap digambar
+    struct ReadyFace {
+        Vector2f screenCorners[4];
+        double depth;
+        double brightness;
+        bool valid;
+    };
 
-        // Gambar kalau kedua ujung terlihat aja
-        if (pointAVisible && pointBVisible) {
-            Vertex line[2];
-            line[0].position = screenPointA;
-            line[0].color = edgeColor;
-            line[1].position = screenPointB;
-            line[1].color = edgeColor;
+    vector<ReadyFace> readyFaces;
+    readyFaces.reserve(allFaces.size());
 
-            window.draw(line, 2, Lines);
+    for (const Face3D& face : allFaces) {
+        // Backface culling: dot product normal face dengan arah kamera
+        double facingCamera = face.normal.dot(cameraDirection);
+        if (facingCamera <= 0.0) {
+            continue;
         }
+
+        // Proyeksikan 4 titik sudut face ke layar
+        ReadyFace ready;
+        ready.valid = true;
+        double totalDepth = 0.0;
+ 
+        for (int i = 0; i < 4; i++) {
+            double cameraZ = 0.0;
+            bool visible = projectPoint(face.corners[i], viewMatrix, ready.screenCorners[i], cameraZ);
+            if (!visible) {
+                ready.valid = false;
+                break;
+            }
+            totalDepth += cameraZ;
+        }
+ 
+        if (!ready.valid) {
+            continue;
+        }
+
+        // Depth = rata-rata Z keempat titik
+        ready.depth = totalDepth / 4.0;
+
+        // Hitung lighting: dot product normal face dengan arah cahaya
+       double lightDot = face.normal.dot(lightDirection);
+        if (lightDot < 0.0) {
+            lightDot = 0.0;
+        }
+        // ambient = cahaya dasar yang selalu ada = 0.4
+        // diffuse = cahaya yang bergantung pada sudut normal = 0.6
+        ready.brightness = 0.4 + 0.6 * lightDot; 
+
+        readyFaces.push_back(ready);
+    }
+
+    /* Tahap 2: sort dari yang paling jauh ke yang paling dekat*/
+    sort(readyFaces.begin(), readyFaces.end(), [](const ReadyFace& faceA, const ReadyFace& faceB) {
+            return faceA.depth > faceB.depth;
+        }
+    );
+
+    /* Tahap 3: gambar tiap face sebagai ConvexShape*/
+    for (const ReadyFace& ready : readyFaces) {
+        // Warna dasar abu-abu kebiruan
+        // Dikalikan brightness untuk efek lighting
+        float baseR = 180.0f;
+        float baseG = 200.0f;
+        float baseB = 220.0f;
+ 
+        float r = (float)(baseR * ready.brightness);
+        float g = (float)(baseG * ready.brightness);
+        float b = (float)(baseB * ready.brightness);
+ 
+        // Clamp supaya tidak melebihi 255
+        if (r > 255.0f) {
+            r = 255.0f;
+        }
+        if (g > 255.0f) {
+            g = 255.0f;
+        }
+        if (b > 255.0f) {
+            b = 255.0f;
+        }
+ 
+        Color faceColor((Uint8)r, (Uint8)g, (Uint8)b, 255);
+ 
+        // Buat polygon dengan 4 titik
+        ConvexShape polygon;
+        polygon.setPointCount(4);
+        polygon.setPoint(0, ready.screenCorners[0]);
+        polygon.setPoint(1, ready.screenCorners[1]);
+        polygon.setPoint(2, ready.screenCorners[2]);
+        polygon.setPoint(3, ready.screenCorners[3]);
+        polygon.setFillColor(faceColor);
+ 
+        // Garis tepi tipis gelap supaya batas antar voxel terlihat
+        polygon.setOutlineColor(Color(30, 30, 40, 200));
+        polygon.setOutlineThickness(0.5f);
+ 
+        window.draw(polygon);
     }
 }
 
@@ -325,8 +450,8 @@ void Viewer::run() {
         // Clear layar pake warna gelap
         window.clear(Color(25, 25, 25));
 
-        // Gambar semua edge
-        drawEdges(window, viewMatrix);
+        // Gambar semua faces
+        drawFaces(window, viewMatrix);
 
         // Tampilin hasil ke layar
         window.display();

@@ -146,7 +146,7 @@ Tucil2_13524098_13524131
 │   ├── pumpkin.obj
 │   ├── teapot-depth5.obj
 │   └── teapot.obj 
-├── README.md
+└── README.md
 ```
 
 ---

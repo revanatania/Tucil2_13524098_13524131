@@ -1,4 +1,4 @@
-# Tucil2_NIM1_NIM2
+# Tucil2_13524098_13524131
 
 Program konversi model 3D `.obj` menjadi model voxel menggunakan algoritma **Divide and Conquer** berbasis struktur data **Octree**, dibuat untuk Tugas Kecil 2 IF2211 Strategi Algoritma Semester II 2025/2026.
 

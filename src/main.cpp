@@ -1,0 +1,116 @@
+#include <iostream>
+#include <string>
+#include <filesystem>
+#include <stdexcept>
+#include <vector>
+
+#include "io/objParser.hpp"
+#include "io/objWriter.hpp"
+#include "voxel/Voxelizer.hpp"
+#include "viewer/Viewer.hpp"
+
+namespace fs = std::filesystem;
+
+static void printUsage(const char* progName) {
+    std::cout << "Usage: " << progName
+              << " <input.obj> <maxDepth> [outputPath] [parallelLevel]\n"
+              << "\n"
+              << "  input.obj      Path to the source .obj file\n"
+              << "  maxDepth       Octree maximum depth (integer >= 1)\n"
+              << "  outputPath     (optional) Where to write the voxelized .obj\n"
+              << "                 Default: <inputStem>-voxelized.obj\n"
+              << "  parallelLevel  (optional) Depth up to which async is used (default 2)\n";
+}
+
+int main(int argc, char* argv[]) {
+    if (argc < 3) {
+        printUsage(argv[0]);
+        return 1;
+    }
+
+    std::string inputPath = argv[1];
+    int maxDepth = 0;
+    try {
+        maxDepth = std::stoi(argv[2]);
+    } catch (...) {
+        std::cerr << "Error: maxDepth must be an integer.\n";
+        return 1;
+    }
+    if (maxDepth < 1) {
+        std::cerr << "Error: maxDepth must be >= 1.\n";
+        return 1;
+    }
+
+    // default path output :  stem + "-voxelized.obj"
+    std::string outputPath;
+    fs::path p(inputPath);
+    if (argc >= 4 && std::string(argv[3]).substr(0, 2) != "--") {
+        outputPath = (p.parent_path() / argv[3]).string();
+    } else {
+        outputPath = (p.parent_path() / (p.stem().string() + "-voxelized.obj")).string();
+    }
+
+    int parallelLevel = 2;
+    if (argc >= 5) {
+        try {
+            parallelLevel = std::stoi(argv[4]);
+        } catch (...) {
+            std::cerr << "Warning: invalid parallelLevel, defaulting to 2.\n";
+        }
+    }
+
+    if (!fs::exists(inputPath)) {
+        std::cerr << "Error: input file does not exist: " << inputPath << "\n";
+        return 1;
+    }
+    if (fs::path(inputPath).extension() != ".obj") {
+        std::cerr << "Error: input file must have .obj extension.\n";
+        return 1;
+    }
+
+    std::cout << "Parsing: " << inputPath << " ...\n";
+    ParseResult parsed = ObjParser::parse(inputPath);
+    if (!parsed.success) {
+        std::cerr << "Parse error: " << parsed.errorMessage << "\n";
+        return 1;
+    }
+    std::cout << "  Vertices: " << parsed.mesh.vertices.size()
+              << "  Triangles: " << parsed.mesh.triangles.size() << "\n";
+
+
+    std::cout << "Voxelizing (maxDepth=" << maxDepth
+              << ", parallelLevel=" << parallelLevel << ") ...\n";
+
+    VoxelizationResult result;
+    try {
+        result = Voxelizer::voxelize(parsed.mesh, maxDepth, parallelLevel);
+    } catch (const std::exception& ex) {
+        std::cerr << "Voxelization error: " << ex.what() << "\n";
+        return 1;
+    }
+
+    bool showViewer = false;
+    for (int i = 1; i < argc; ++i) {
+        if (std::string(argv[i]) == "--show") {
+            showViewer = true;
+        }
+    }
+
+    result.stats.outputPath = outputPath;
+    std::string writeError;
+    if (!Output::writeMesh(outputPath, result.outputMesh, writeError)) {
+        std::cerr << "Write error: " << writeError << "\n";
+        return 1;
+    }
+    
+    if (showViewer) {
+        std::cout << "Opening Viewer... (Close window to see stats)\n";
+        Viewer viewer(result.voxels); 
+        viewer.run();
+    }
+
+    std::cout << "\n=== Hasil ===\n";
+    Output::printStats(result.stats);
+
+    return 0;
+}

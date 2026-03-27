@@ -1,4 +1,4 @@
-# Tucil2_NIM1_NIM2
+# Tucil2_13524098_13524131
 
 Program konversi model 3D `.obj` menjadi model voxel menggunakan algoritma **Divide and Conquer** berbasis struktur data **Octree**, dibuat untuk Tugas Kecil 2 IF2211 Strategi Algoritma Semester II 2025/2026.
 
@@ -106,39 +106,46 @@ g++ -std=c++17 -O2 -pthread main.cpp geometry/Intersection.cpp geometry/Mesh.cpp
 ## Struktur Repository
 
 ```
-Tucil2_NIM1_NIM2/
-├── src/
-│   ├── main.cpp
-│   ├── geometry/
-│   │   ├── Vector3D.hpp
+Tucil2_13524098_13524131
+├── bin
+│   └── voxelizer.exe
+├── doc
+│   └── LaporanTucil2_13524098_13524131.pdf
+├── src
+│   ├── geometry
 │   │   ├── AABB.hpp
-│   │   ├── Triangle.hpp
-│   │   ├── Mesh.hpp
-│   │   ├── Mesh.cpp
+│   │   ├── Intersection.cpp
 │   │   ├── Intersection.hpp
-│   │   └── Intersection.cpp
-│   ├── io/
-│   │   ├── objParser.hpp
+│   │   ├── Mesh.cpp
+│   │   ├── Mesh.hpp
+│   │   ├── Triangle.hpp
+│   │   └── Vector3D.hpp
+│   ├── io
 │   │   ├── objParser.cpp
-│   │   ├── objWriter.hpp
-│   │   └── objWriter.cpp
-│   ├── octree/
-│   │   ├── octreeNode.hpp
+│   │   ├── objParser.hpp
+│   │   ├── objWriter.cpp
+│   │   └── objWriter.hpp
+│   ├── main.cpp
+│   ├── octree
+│   │   ├── Octree.cpp
 │   │   ├── Octree.hpp
-│   │   └── Octree.cpp
-│   ├── voxel/
-│   │   ├── Voxelizer.hpp
-│   │   └── Voxelizer.cpp
-│   └── viewer/
-│       ├── Viewer.hpp
-│       └── Viewer.cpp
-├── test/
+│   │   └── octreeNode.hpp
+│   ├── viewer
+│   │   ├── Viewer.cpp
+│   │   └── Viewer.hpp
+│   └── voxel
+│       ├── Voxelizer.cpp
+│       └── Voxelizer.hpp
+└── test
+│   ├── cow-depth6.obj
+│   ├── cow-depth8.obj
 │   ├── cow.obj
+│   ├── line-depth6.obj
+│   ├── line.obj
+│   ├── pumpkin-depth5.obj
 │   ├── pumpkin.obj
-│   ├── teapot.obj
-│   └── line.obj
-├── doc/
-│   └── Laporan_Tucil2_13524098_13524131.pdf
+│   ├── teapot-depth5.obj
+│   └── teapot.obj 
 └── README.md
 ```
 
